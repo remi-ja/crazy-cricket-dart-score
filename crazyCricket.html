@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style>
+.focused {
+	background-color: cornflowerblue;
+}
+table {
+	width: 100%;
+}
+td, th {
+	width: 10%;
+}
+		</style>
+		<script charset="utf-8">
+ajouterJoueur = function() {
+	const playerName = document.getElementById('new-player').value;
+	if (!playerName) {
+		return;
+	}
+	if (document.getElementById(playerName)) {
+		alert('player already exists');
+		return;
+	}
+	const newRow = document.createElement('tr');
+	newRow.id = playerName;
+	document.getElementById('table').appendChild(newRow);
+	const playerNode = document.createElement('td');
+	playerNode.innerText = playerName;
+	newRow.append(playerNode);
+	for (let i = 0; i < 9; i++) {
+		newRow.append(document.createElement('td'));
+	}
+	newRow.children[1].innerText = 0;
+	newRow.children[2].innerText = 0;
+	document.getElementById('next-player').disabled = false;
+}
+generateNumbers = function() {
+	const toExclude = [];
+	const canInclude = [];
+	for (let i = 1; i <= 6; i++) {
+		let opened = false;
+		for (let j = 0; j < document.getElementById('table').children.length; j++) {
+			if (document.getElementById('table').children[j].children[i + 2].innerText.length >= 3) {
+				toExclude.push(document.getElementById('h' + i).innerText);
+			}
+			if (!document.getElementById('h' + i).innerText.length
+					|| document.getElementById('table').children[j].children[i + 2].innerText.length != 0) {
+				canInclude.push(i);
+				opened = true;
+			}
+		}
+		if (!opened) {
+			toExclude.push(document.getElementById('h' + i).innerText);
+		}
+	}
+	const allreadyPicked = [];
+	for (let i = 1; i <= 6; i++) {
+		if (toExclude.indexOf(document.getElementById('h' + i).innerText) != -1) {
+			continue;
+		}
+		if (canInclude.indexOf(i) == -1) {
+			continue;
+		}
+		let breaker = true;
+		while (breaker) {
+			const r = random1to20();
+			if (toExclude.indexOf(r) == -1 && allreadyPicked.indexOf(r) == -1) {
+				allreadyPicked.push(r);
+				document.getElementById('h' + i).innerText = r;
+				breaker = false;
+			}
+		}
+	}
+}
+random1to20 = function() {
+	return '' + (Math.floor(Math.random() * 20) + 1);
+}
+nextPlayer = function() {
+	const tableChildren = document.getElementById('table').children;
+	let index = 0;
+	for (let i = 0; i < tableChildren.length; i++) {
+		if (tableChildren[i].className == 'focused') {
+			index = i + 1;
+			tableChildren[i].className = null;
+			break;
+		}
+	}
+	if (index > tableChildren.length - 1) {
+		index = 0;
+		document.getElementById('turn').innerText = parseInt(document.getElementById('turn').innerText) + 1;
+	}
+	tableChildren[index].className = 'focused';
+}
+addTutch = function(i) {
+	let focused = document.getElementsByClassName('focused');
+	if (focused.length == 0) {
+		return;
+	}
+	focused = focused[0];
+	if (focused.childNodes[i + 2].innerText.length < 3) {
+		focused.childNodes[i + 2].innerText += '\u2B24';
+		focused.children[2].innerText = parseInt(focused.children[2].innerText) + 1;
+		return;
+	}
+	let tutched = false;
+	for (let j = 0; j < document.getElementById('table').children.length; j++) {
+		const child = document.getElementById('table').children[j];
+		if (child.children[i + 2].innerText.length < 3) {
+			tutched = true;
+			child.children[1].innerText = parseInt(child.children[1].innerText) + parseInt(document.getElementById('h' + i).innerText);
+		}
+	}
+	if (tutched) {
+		focused.children[2].innerText = parseInt(focused.children[2].innerText) + 1;
+	}
+}
+		</script>
+	</head>
+	<body>
+		<input id="new-player" value="">
+		<button id="add-new-player" onclick="ajouterJoueur()">Ajouter joueur</button>
+		<button id="next-player" disabled onclick="generateNumbers();nextPlayer()">Joueur suivant</button>
+		<p>Tour <span id="turn">1</span></p>
+		<table>
+			<thead>
+				<tr>
+					<th>Nom</th>
+					<th>Score</th>
+					<th>Touches</th>
+					<th><span id="h1"></span> <button onclick="addTutch(1)">+</button></th>
+					<th><span id="h2"></span> <button onclick="addTutch(2)">+</button></th>
+					<th><span id="h3"></span> <button onclick="addTutch(3)">+</button></th>
+					<th><span id="h4"></span> <button onclick="addTutch(4)">+</button></th>
+					<th><span id="h5"></span> <button onclick="addTutch(5)">+</button></th>
+					<th><span id="h6"></span> <button onclick="addTutch(6)">+</button></th>
+					<th>      <span>&#127919;</span> <button onclick="addTutch(7)">+</button></th>
+				</tr>
+			</thead>
+			<tbody id="table">
+			</tbody>
+		</table>
+		<script>document.getElementById('next-player').disabled = true;</script>
+		<div id="h7" style="display: none">25</div>
+	</body>
+</html>
